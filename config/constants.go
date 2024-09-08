@@ -8,11 +8,15 @@ import (
 
 var (
 	AppName         = "yato"
+	PrettyAppName   = "Yato"
 	Version         = "0.1.0"
 	MALOAuthBaseURL = "https://myanimelist.net/v1/oauth2/authorize"
 	MALClientID     string
 	MALClientSecret string
 	MALRedirectURI  = "http://localhost:42069/authenticate"
+	MALAPIBaseURL   = "https://api.myanimelist.net/v2"
+	JikanAPIBaseURL = "https://api.jikan.moe/v4"
+	ConfigDir, _    = os.UserConfigDir()
 )
 
 // These variables will be set by the linker during build

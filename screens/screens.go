@@ -2,6 +2,7 @@ package screens
 
 import (
 	"os"
+	"yato/lib"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
@@ -12,8 +13,9 @@ type ScreenSwitcher struct {
 }
 
 type Globals struct {
-	width  int
-	height int
+	width       int
+	height      int
+	CurrentUser *lib.MALUser
 }
 
 var globals Globals
@@ -64,6 +66,8 @@ func Initialize() tea.Model {
 
 	globals.width = width
 	globals.height = height
+
+	globals.CurrentUser, _ = lib.CurrentUser()
 
 	return screen()
 }

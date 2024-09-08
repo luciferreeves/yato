@@ -1,4 +1,4 @@
-package utils
+package lib
 
 import (
 	"crypto/rand"
@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os/exec"
+	"runtime"
 	"strings"
 	"yato/config"
 )
@@ -32,6 +34,23 @@ func GetNewCodeVerifier() (string, error) {
 func GetOAuthURL(codeVerifier string) string {
 	return fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&code_challenge=%s&code_challenge_method=plain",
 		config.MALOAuthBaseURL, config.MALClientID, config.MALRedirectURI, codeVerifier)
+}
+
+func OpenBrowser(url string) error {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+
+	return err
 }
 
 func ExchangeToken(code, codeVerifier string) (*config.MyAnimeListConfig, error) {

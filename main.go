@@ -6,11 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"runtime"
 	"yato/config"
+	"yato/lib"
 	"yato/screens"
-	"yato/utils"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -50,12 +48,12 @@ func StartApp() {
 func StartOAuthFlow() {
 	var err error
 
-	codeVerifier, err = utils.GetNewCodeVerifier()
+	codeVerifier, err = lib.GetNewCodeVerifier()
 	if err != nil {
 		log.Fatalf("failed to generate code verifier: %s", err)
 	}
 
-	url := utils.GetOAuthURL(codeVerifier)
+	url := lib.GetOAuthURL(codeVerifier)
 
 	server := &http.Server{Addr: ":42069"}
 	http.HandleFunc("/authenticate", handleOAuthCallback)
@@ -66,7 +64,7 @@ func StartOAuthFlow() {
 		}
 	}()
 
-	if err := openBrowser(url); err != nil {
+	if err := lib.OpenBrowser(url); err != nil {
 		log.Printf("failed to open browser: %v. Visit %s in your browser to authenticate.", err, url)
 	}
 
@@ -89,7 +87,7 @@ func handleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	malConfig, err := utils.ExchangeToken(code, codeVerifier)
+	malConfig, err := lib.ExchangeToken(code, codeVerifier)
 	if err != nil {
 		errorChan <- fmt.Errorf("failed to exchange token: %w", err)
 		http.Error(w, "failed to exchange token", http.StatusInternalServerError)
@@ -105,21 +103,4 @@ func handleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Authentication successful! You can now close this tab."))
 	authorizationChan <- struct{}{}
-}
-
-func openBrowser(url string) error {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-
-	return err
 }
